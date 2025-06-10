@@ -17,11 +17,18 @@ validate_time_format ${DISARM_TIME} ||
 	(echo "DISARM_TIME variable doesn't follow valid hh:mm format"; exit 1)
 
 
-function fetch_datetime_utc() {
-	# sets the variable `datetime` to UTC time
+function fetch_time_utc() {
+	# sets the variable `utc_time`
 
 	_output_file=$(mktemp)
 	wget http://worldtimeapi.org/api/timezone/Etc/UTC -O ${_output_file}
-	datetime=$(cat ${_output_file} | jq -r '.utc_datetime')
+	_datetime=$(cat ${_output_file} | jq -r '.utc_datetime')
 	rm ${_output_file}
+
+	utc_time=${_datetime:11:5}
+	validate_time_format ${utc_time} ||
+		(echo 'something went wrong when fetching or decoding time from API'; exit 1)
 }
+
+fetch_time_utc
+echo "time UTC: $utc_time"
