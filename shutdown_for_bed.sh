@@ -1,3 +1,10 @@
+# format "hh:mm"
+BEDTIME="10:00"
+DISARM_TIME="05:00"
+
+
+
+
 function fetch_datetime_utc() {
 	# sets the variable `datetime` to UTC time
 
@@ -6,7 +13,3 @@ function fetch_datetime_utc() {
 	datetime=$(cat ${_output_file} | jq -r '.utc_datetime')
 	rm ${_output_file}
 }
-
-
-fetch_datetime_utc
-echo "the datetime is $datetime"
