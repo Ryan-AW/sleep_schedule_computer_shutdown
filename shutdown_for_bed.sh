@@ -1,6 +1,9 @@
+#!/bin/bash
+
+
 # format "hh:mm"
-BEDTIME="10:34"
-DISARM_TIME="05:35"
+BEDTIME="14:34"
+DISARM_TIME="22:35"
 
 
 function validate_time_format() {
@@ -41,15 +44,14 @@ function trigger_shutdown() {
 	shutdown now
 }
 
+function convert_to_minutes() {
+	local time=$1
+	local hours=${time:0:2}
+	local minutes=${time:3:2}
+	echo $((10#$hours * 60 + 10#$minutes))
+}
 
 function check_if_shutdown_time() {
-	function convert_to_minutes() {
-	    local time=$1
-	    local hours=${time:0:2}
-	    local minutes=${time:3:2}
-	    echo $((10#$hours * 60 + 10#$minutes))
-	}
-
 	validate_time_format ${1} || {
 		echo "START_TIME doesn't follow valid hh:mm format"
 		exit 1
@@ -83,7 +85,37 @@ function check_if_shutdown_time() {
 }
 
 
+function schedule_shutdown() {
+	validate_time_format ${1} || {
+		echo "CUR_TIME doesn't follow valid hh:mm format"
+		exit 1
+	}
+
+	validate_time_format ${2} || {
+		echo "SHUTDOWN_TIME doesn't follow valid hh:mm format"
+		exit 1
+	}
+
+	cur_time=$1
+	shutdown_time=$2
+
+	cur_total_minutes=$(convert_to_minutes "$cur_time")
+	shutdown_total_minutes=$(convert_to_minutes "$shutdown_time")
+
+	if [[ $shutdown_total_minutes -ge $cur_total_minutes ]]; then
+		remaining_minutes=$(($shutdown_total_minutes - $cur_total_minutes))
+	else
+		remaining_minutes=$((1440 - $cur_total_minutes + $shutdown_total_minutes))
+	fi
+	
+	echo "waiting for $remaining_minutes minutes"
+	sleep "${remaining_minutes}m"
+	trigger_shutdown
+}
+
+
 fetch_time_utc
 echo "time UTC: $utc_time"
 
 check_if_shutdown_time ${BEDTIME} ${utc_time} ${DISARM_TIME}
+schedule_shutdown ${utc_time} ${BEDTIME}
