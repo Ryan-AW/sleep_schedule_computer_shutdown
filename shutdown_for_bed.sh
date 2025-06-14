@@ -1,9 +1,9 @@
 #!/bin/bash
 
 
-# format "hh:mm"
-BEDTIME="14:34"
-DISARM_TIME="22:35"
+# UTC time in format "hh:mm"
+BEDTIME="01:00"
+DISARM_TIME="06:00"
 
 
 function validate_time_format() {
